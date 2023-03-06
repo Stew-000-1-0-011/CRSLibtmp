@@ -23,7 +23,7 @@ namespace CRSLib
 	}
 
 	template<class T>
-	using AlignedStorage = Implement::AlignedStorage_<T>;
+	using AlignedStorageT = typename Implement::AlignedStorage_<T>::T;
 
 	// 引用: cpprefjp bit_cast
 	template<typename To, typename From>

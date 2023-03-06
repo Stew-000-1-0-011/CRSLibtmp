@@ -58,5 +58,5 @@ namespace CRSLib
 	}
 
 	template<class T>
-	using AlignedStorage = Implement::AlignedStorage_<T>;
+	using AlignedStorageT = Implement::AlignedStorage_<T>::T;
 }
