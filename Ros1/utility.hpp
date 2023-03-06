@@ -1,28 +1,16 @@
-/**
- * @file utility.hpp
- * @author Stew
- * @brief C++20で使うutility。CRSで使われるC++のバージョンに合わせられる
- * @version 0.1
- * @date 2023-03-07
- * 
- */
-
 #pragma once
 
-#include <concepts>
 #include <type_traits>
 #include <utility>
+#include <cstring>
 
 #include "std_type.hpp"
 
 namespace CRSLib
 {
-	template<class T, class U>
-	concept cvref_same = std::same_as<std::remove_cvref_t<T>, U>;
-
 	// 引用: cppref forward_like
 	template<class T, class U>
-	[[nodiscard]] constexpr auto&& forward_like(U&& x) noexcept
+	constexpr auto&& forward_like(U&& x) noexcept
 	{
 		constexpr bool is_adding_const = std::is_const_v<std::remove_reference_t<T>>;
 		if constexpr (std::is_lvalue_reference_v<T&&>) {
@@ -53,10 +41,19 @@ namespace CRSLib
 			AlignedStorage_(const AlignedStorage_&) = delete;
 			AlignedStorage_(AlignedStorage_&&) = delete;
 
-			using T = alignas(T_) byte[sizeof(T_)];
+			using T = alignas(T_) unsigned char[sizeof(T_)];
 		};
 	}
 
 	template<class T>
 	using AlignedStorage = Implement::AlignedStorage_<T>;
+
+	// 引用: cpprefjp bit_cast
+	template<typename To, typename From>
+	To bit_cast(const From& from) noexcept
+	{
+		To result;
+		std::memcpy(&result, &from, sizeof(To));
+		return result;
+	}
 }
