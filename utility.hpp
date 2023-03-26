@@ -20,6 +20,9 @@ namespace CRSLib
 	template<class T, class U>
 	concept cvref_same = std::same_as<std::remove_cvref_t<T>, U>;
 
+	template<class T>
+	concept non_cvref = std::same_as<std::remove_cvref_t<T>, T>;
+
 	// 引用: cppref forward_like
 	template<class T, class U>
 	[[nodiscard]] constexpr auto&& forward_like(U&& x) noexcept
@@ -42,6 +45,27 @@ namespace CRSLib
 			}
 		}
 	}
+
+	template<class Src, non_cvref Dest>
+	using PropagateConst = std::conditional_t<std::is_const_v<Src>, const Dest, Dest>;
+
+	template<class Src, non_cvref Dest>
+	using PropagateVolatile = std::conditional_t<std::is_volatile_v<Src>, volatile Dest, Dest>;
+
+	template<class Src, non_cvref Dest>
+	using PropagateCV = PropagateConst<Src, PropagateVolatile<Src, Dest>>;
+
+	template<class Src, non_cvref Dest>
+	using PropagateLRef = std::conditional_t<std::is_lvalue_reference_v<Src>, Dest&, Dest>;
+
+	template<class Src, non_cvref Dest>
+	using PropagateRRef = std::conditional_t<std::is_rvalue_reference_v<Src>, Dest&&, Dest>;
+
+	template<class Src, non_cvref Dest>
+	using PropagateRef = PropagateLRef<Src, PropagateRRef<Src, Dest>>;
+
+	template<class Src, non_cvref Dest>
+	using PropagateCVRef = PropagateRef<Src, PropagateCV<std::remove_reference_t<Src>, Dest>>;
 
 	namespace Implement
 	{
