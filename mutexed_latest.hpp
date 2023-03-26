@@ -40,16 +40,18 @@ namespace CRSLib
 			stamped{{forward_like<decltype(other)>(other.value)}, {forward_like<decltype(other)>(other.time)}}
 		{}
 
-		void update(cvref_same<Stamped> auto&& maybe_new_stamped)
+		auto update(cvref_same<Stamped> auto&& maybe_new_stamped) -> bool
 		{
 			std::lock_guard lock{mutex};
 			if(stamped.time <= maybe_new_stamped.time)
 			{
 				stamped = std::forward<decltype(maybe_new_stamped)>(maybe_new_stamped);
+				return true;
 			}
+			return false;
 		}
 
-		Stamped get() const
+		auto get() const -> Stamped
 		{
 			std::shared_lock lock{mutex};
 			return stamped;
