@@ -1,6 +1,7 @@
 #pragma once
 
 #include <optional>
+#include <numbers>
 
 #include <blaze/Math.h>
 
@@ -12,8 +13,17 @@
 
 namespace CRSLib::LightweightPointCloud::LShapeFit
 {
-	inline auto calc_l_shape(const std::vector<Vec2D>& data_points, const Pose2D& l_shape_from_odometry, const double threshold) -> std::optional<Pose2D>
+	/**
+	 * @brief 与えられた点群データとL字の位置姿勢の推定値から、L字の位置姿勢(交点の位置と横棒の向き)を計算する。
+	 * 
+	 * @param data_points 点群データ。ある時刻におけるものとして補正済みである必要がある
+	 * @param l_shape_from_odometry L字の位置姿勢の推定値。きっと1ステップ前の位置姿勢にオドメトリ情報なんかを足して作るかと思う。
+	 * @param threshold しきい値。データ点のうち、その点とL字交点とL字の各棒それぞれの成す角[rad]がこれ以下であるもののみを利用する。 デフォルトでπ/8。
+	 * @return std::optional<Pose2D> 
+	 */
+	inline auto calc_l_shape(const std::vector<Vec2D>& data_points, const Pose2D& l_shape_from_odometry, const double threshold = std::numbers::pi / 8) -> std::optional<Pose2D>
 	{
+		const double fixed_threshold = std::min(threshold, std::numbers::pi / 4);
 		const auto axis_x = Vec2D{blaze::cos(l_shape_from_odometry.theta), blaze::sin(l_shape_from_odometry.theta)};
 		const auto axis_y = Vec2D{-blaze::sin(l_shape_from_odometry.theta), blaze::cos(l_shape_from_odometry.theta)};
 
@@ -26,13 +36,13 @@ namespace CRSLib::LightweightPointCloud::LShapeFit
 			const auto point = data_point - l_shape_from_odometry.point;
 			const auto unit_point = blaze::trans(blaze::normalize(point));
 
-			if(const auto dot_x = blaze::acos(unit_point * axis_x); dot_x <= blaze::min(-threshold, -0.5) || blaze::max(threshold, 0.5) <= dot_x)
+			if(const auto dot_x = blaze::acos(unit_point * axis_x); blaze::abs(dot_x) <= fixed_threshold)
 			{
 				fitted_x.update(point);
 				sum_x += point;
 				++x_n;
 			}
-			else if(const auto dot_y = blaze::acos(unit_point * axis_y); dot_y <= blaze::min(-threshold, -0.5) || blaze::max(threshold, 0.5) <= dot_y)
+			else if(const auto dot_y = blaze::acos(unit_point * axis_y); blaze::abs(dot_y) <= fixed_threshold)
 			{
 				fitted_y.update(point);
 				++y_n;
