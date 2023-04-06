@@ -2,7 +2,7 @@
 
 #include <blaze/Math.h>
 
-namespace CRSLib::LightweightPointCloud::LShapeFit
+namespace CRSLib::Math
 {
 	using Vec2D = blaze::StaticVector<double, 2>;
 }

@@ -2,7 +2,7 @@
 
 #include "vec2_d.hpp"
 
-namespace CRSLib::LightweightPointCloud::LShapeFit
+namespace CRSLib::Math
 {
 	struct Pose2D final
 	{

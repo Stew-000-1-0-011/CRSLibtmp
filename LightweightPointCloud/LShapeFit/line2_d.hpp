@@ -2,7 +2,7 @@
 
 #include <optional>
 
-#include "vec2_d.hpp"
+#include <CRSLibtmp/Math/vec2_d.hpp>
 
 namespace CRSLib::LightweightPointCloud::LShapeFit
 {
@@ -24,7 +24,7 @@ namespace CRSLib::LightweightPointCloud::LShapeFit
 			 * 
 			 * @param vec
 			 */
-			void update(const Vec2D& vec) noexcept
+			void update(const Math::Vec2D& vec) noexcept
 			{
 				x_2 += vec[0] * vec[0];
 				y_2 += vec[1] * vec[1];
