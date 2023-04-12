@@ -12,15 +12,19 @@
 
 namespace CRSLib::Mechanism
 {
-	template<Motor::speed_controlled_motor ... Motors>
-	class OmniN final
+	template<omni_wheel ... OmniWheels>
+	struct OmniN final
 	{
-		std::tuple<OmniWheel<Motors> ...> wheels;
+		std::tuple<OmniWheels ...> wheels;
 
-		public:
-		OmniN(cvref_same<OmniWheel<Motors>> auto&& ... wheels):
+		OmniN(cvref_same<OmniWheels> auto&& ... wheels):
 			wheels{std::forward<decltype(wheels)>(wheels)...}
 		{}
+
+		void turn_off()
+		{
+			
+		}
 
 		void update(const Math::Pose2D& body_speed)
 		{
@@ -28,12 +32,9 @@ namespace CRSLib::Mechanism
 			{
 				[](auto&& wheel, const Math::Pose2D& body_speed)
 				{
-					const auto linear_component = blaze::trans(body_speed.point) * Math::unit_vec(wheel.pose.theta);
-					const auto angular_component = body_speed.theta * blaze::norm(wheel.pose.point);
-				
-					wheel.motor.update_speed(linear_component + angular_component);
+					wheel.update(body_speed);
 				}(std::get<indices>(wheels), body_speed) ...;
-			}(body_speed, std::make_index_sequence<sizeof...(Motors)>);
+			}(body_speed, std::make_index_sequence<sizeof...(Motors)>{});
 		}
 	};
 }

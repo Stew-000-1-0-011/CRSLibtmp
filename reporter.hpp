@@ -10,7 +10,4 @@ namespace CRSLib
 	{
 		{reporter(c_str)} noexcept;
 	};
-
-	template<class T>
-	concept variadic_reporter = reporter<T>;
 }

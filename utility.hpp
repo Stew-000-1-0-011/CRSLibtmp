@@ -9,9 +9,11 @@
 
 #pragma once
 
+#include <cstdint>
 #include <concepts>
 #include <type_traits>
 #include <utility>
+#include <ratio>
 
 #include "std_type.hpp"
 
@@ -83,4 +85,24 @@ namespace CRSLib
 
 	template<class T>
 	using AlignedStorageT = Implement::AlignedStorage_<T>::T;
+
+	template <class T>
+	constexpr std::underlying_type_t<T> to_underlying(T value) noexcept
+	{
+		return static_cast<std::underlying_type_t<T>>(value);
+	}
+
+	inline constexpr auto ratio_get_numbers = []<std::intmax_t n, std::intmax_t d>(std::ratio<n, d>)
+	{
+		return std::pair{n, d};
+	};
+
+	template<std::floating_point T, std::intmax_t n, std::intmax_t d>
+	auto ratio_to_floating(std::ratio<n, d>)
+	{
+		return static_cast<T>(n) / d;
+	}
+
+	template<class T>
+	concept is_std_ratio = std::invocable<decltype(ratio_get_numbers), T>;
 }

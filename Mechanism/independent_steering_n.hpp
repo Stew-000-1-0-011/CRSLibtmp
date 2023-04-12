@@ -25,7 +25,7 @@ namespace CRSLib::Mechanism
 				{
 					wheel.update(Math::get_angle(wheel.position) + std::numbers::pi_v / 2, body_angle_speed);
 				}(std::get<indices>(wheels), body_angle_speed)...;
-			}(body_angle_speed, std::make_index_sequence<sizeof...(SteeringWheels)>);
+			}(body_angle_speed, std::make_index_sequence<sizeof...(SteeringWheels)>{});
 		}
 
 		void crab_transit(const Math::Pose2D& body_linear_speed)
