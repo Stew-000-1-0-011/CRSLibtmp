@@ -23,18 +23,35 @@ namespace CRSLib::Mechanism
 
 		void turn_off()
 		{
-			
+			[this]<size_t ... indices>(std::index_sequence<indices...>)
+			{
+				([](auto&& wheel)
+				{
+					wheel.motor.turn_off();
+				}(std::get<indices>(wheels)), ...);
+			}(std::make_index_sequence<sizeof...(OmniWheels)>{});
+		}
+
+		void stop()
+		{
+			[this]<size_t ... indices>(std::index_sequence<indices...>)
+			{
+				([](auto&& wheel)
+				{
+					wheel.motor.stop();
+				}(std::get<indices>(wheels)), ...);
+			}(std::make_index_sequence<sizeof...(OmniWheels)>{});
 		}
 
 		void update(const Math::Pose2D& body_speed)
 		{
 			[this]<size_t ... indices>(const Math::Pose2D& body_speed, std::index_sequence<indices...>)
 			{
-				[](auto&& wheel, const Math::Pose2D& body_speed)
+				([](auto&& wheel, const Math::Pose2D& body_speed)
 				{
 					wheel.update(body_speed);
-				}(std::get<indices>(wheels), body_speed) ...;
-			}(body_speed, std::make_index_sequence<sizeof...(Motors)>{});
+				}(std::get<indices>(wheels), body_speed), ...);
+			}(body_speed, std::make_index_sequence<sizeof...(OmniWheels)>{});
 		}
 	};
 }

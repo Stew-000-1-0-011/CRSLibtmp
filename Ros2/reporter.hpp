@@ -19,8 +19,8 @@ namespace CRSLib::Ros2
 				RCLCPP_DEBUG(logger, std::forward<decltype(args)>(args) ...);
 				break;
 
-				case rclcpp::Logger::Level::Info
-				RCLCPP_Info(logger, std::forward<decltype(args)>(args) ...);
+				case rclcpp::Logger::Level::Info:
+				RCLCPP_INFO(logger, std::forward<decltype(args)>(args) ...);
 				break;
 
 				case rclcpp::Logger::Level::Warn:

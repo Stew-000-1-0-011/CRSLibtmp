@@ -14,37 +14,42 @@
 
 namespace CRSLib::Ros2
 {
-	template<reporter Reporter>
-	class CanPillarbox final
+	namespace CanTxVersion
 	{
-		Reporter reporter;
-		std::weak_ptr<rclcpp::Publisher<can_plugins2::msg::Frame>> pub;
-		u32 id;
-
-		public:
-		CanPillarbox(Reporter&& reporter, const u32 id, const auto self)
-		requires std::derived_from<std::remove_cvref_t<decltype(*self)>, rclcpp::Node>
-		:
-			reporter{std::move(reporter)},
-			pub{self->create_publisher<can_plugins2::msg::Frame>("can_tx", 1)},
-			id{id}
-		{}
-
-		void post(const Can::DataField& data)
+		template<reporter Reporter>
+		class CanPillarbox final
 		{
-			can_plugins2::msg::Frame frame{};
-			frame.id = id;
-			frame.dlc = data.dlc;
-			std::memcpy(frame.data.data(), data.buffer, data.dlc);
+			Reporter reporter;
+			std::weak_ptr<rclcpp::Publisher<can_plugins2::msg::Frame>> pub;
+			u32 id;
 
-			if(const auto sp = pub.lock(); sp)
+			public:
+			CanPillarbox(Reporter&& reporter, const u32 id, auto& self)
+			requires std::derived_from<std::remove_cvref_t<decltype(self)>, rclcpp::Node>
+			:
+				reporter{std::move(reporter)},
+				pub{self.template create_publisher<can_plugins2::msg::Frame>("can_tx", 1)},
+				id{id}
+			{}
+
+			void post(const Can::DataField& data)
 			{
-				sp->publish(frame);
+				can_plugins2::msg::Frame frame{};
+				frame.id = id;
+				frame.dlc = data.dlc;
+				std::memcpy(frame.data.data(), data.buffer, data.dlc);
+
+				if(const auto sp = pub.lock(); sp)
+				{
+					sp->publish(frame);
+				}
+				else
+				{
+					reporter("Expired CAN publisher was tried to use.");
+				}
 			}
-			else
-			{
-				reporter("Expired CAN publisher was tried to use.");
-			}
-		}
-	};
+		};
+	}
+
+	using CanTxVersion::CanPillarbox;
 }

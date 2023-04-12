@@ -17,9 +17,9 @@ namespace CRSLib::Mechanism
 	concept omni_wheel = std::derived_from<T, Implement::OmniWheelMarker>;
 
 	template<Motor::speed_controlled_motor M>
-	struct OmniWheel final
+	struct OmniWheel final : Implement::OmniWheelMarker
 	{
-		typename M::Variant motor;
+		M motor;
 		Math::Pose2D pose;
 		const double coefficient;
 
@@ -33,7 +33,7 @@ namespace CRSLib::Mechanism
 		{
 			const auto linear_component = blaze::trans(body_speed.point) * Math::unit_vec(pose.theta);
 			const auto angular_component = body_speed.theta * blaze::norm(pose.point);
-			.update_speed((linear_component + angular_component) * coefficient);
+			motor.update_speed((linear_component + angular_component) * coefficient);
 		}
 	};
 }
