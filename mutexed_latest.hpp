@@ -20,6 +20,7 @@ namespace CRSLib
 	requires requires(const Time& t1, const Time& t2)
 		{
 			{t1 < t2} -> std::same_as<bool>;
+			{t1 == t2} -> std::same_as<bool>;
 			requires std::copy_constructible<Time>;
 			requires std::copy_constructible<T>;
 		}
@@ -30,6 +31,11 @@ namespace CRSLib
 		{
 			T value;
 			Time time;
+
+			constexpr Stamped(cvref_same<T> auto&& value, cvref_same<Time> auto&& time):
+				value{std::forward<decltype(value)>(value)},
+				time{std::forward<decltype(time)>(time)}
+			{}
 		};
 		
 		private:
@@ -53,7 +59,7 @@ namespace CRSLib
 		private:
 		template<size_t ... time_indices, size_t ... value_indices>
 		MutexedLatest(auto&& value, auto&& time, const std::index_sequence<value_indices ...>&, const std::index_sequence<time_indices ...>&):
-			stamped{{std::forward<decltype(std::get<value_indices>(value))>(std::get<value_indices>(value)) ...}, {std::forward<decltype(std::get<time_indices>(time))>(std::get<time_indices>(time)) ...}}
+			stamped{T{std::forward<decltype(std::get<value_indices>(value))>(std::get<value_indices>(value)) ...}, Time{std::forward<decltype(std::get<time_indices>(time))>(std::get<time_indices>(time)) ...}}
 		{}
 
 		public:

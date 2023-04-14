@@ -24,11 +24,9 @@ namespace CRSLib::Ros2
 			u32 id;
 
 			public:
-			CanPillarbox(Reporter&& reporter, const u32 id, auto& self)
-			requires std::derived_from<std::remove_cvref_t<decltype(self)>, rclcpp::Node>
-			:
+			CanPillarbox(Reporter&& reporter, std::weak_ptr<rclcpp::Publisher<can_plugins2::msg::Frame>>&& pub, const u32 id):
 				reporter{std::move(reporter)},
-				pub{self.template create_publisher<can_plugins2::msg::Frame>("can_tx", 1)},
+				pub{std::move(pub)},
 				id{id}
 			{}
 
@@ -48,6 +46,11 @@ namespace CRSLib::Ros2
 					reporter("Expired CAN publisher was tried to use.");
 				}
 			}
+		};
+
+		class CanClusterLetterbox final
+		{
+			
 		};
 	}
 

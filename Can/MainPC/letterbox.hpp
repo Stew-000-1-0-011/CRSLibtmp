@@ -19,10 +19,9 @@ namespace CRSLib::Can::MainPC
 	concept letterbox = std::move_constructible<T> && requires(T mut, const T imut, const std::shared_ptr<Callback> callback, const DataField data)
 	{
 		mut.add(callback);
-		imut.receive(data);
 	};
 
-	struct Letterbox final
+	struct LetterboxOfCluster final
 	{
 		u32 id{max_ext_id};
 		std::vector<std::weak_ptr<Callback>> callbacks{};
@@ -44,8 +43,9 @@ namespace CRSLib::Can::MainPC
 		}
 	};
 
+	// can_tx用
 	template<class T>
-	concept cluster_letterbox = std::move_constructible<T> && requires(T mut, const T imut, Letterbox box, const u32 id, const DataField data)
+	concept cluster_letterbox = std::move_constructible<T> && requires(T mut, const T imut, LetterboxOfCluster box, const u32 id, const DataField data)
 	{
 		mut.add(box);
 		mut.build();

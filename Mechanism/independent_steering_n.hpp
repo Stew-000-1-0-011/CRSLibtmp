@@ -9,7 +9,7 @@
 namespace CRSLib::Mechanism
 {
 	template<steering_wheel ... SteeringWheels>
-	class IndependentSteeringN final
+	struct IndependentSteeringN final
 	{
 		std::tuple<SteeringWheels ...> wheels;
 
