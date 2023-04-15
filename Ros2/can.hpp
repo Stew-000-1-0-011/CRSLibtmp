@@ -8,25 +8,23 @@
 #include <can_plugins2/msg/frame.hpp>
 
 #include <CRSLibtmp/std_type.hpp>
-#include <CRSLibtmp/reporter.hpp>
+#include <CRSLibtmp/Can/utility.hpp>
 #include <CRSLibtmp/Can/MainPC/pillarbox.hpp>
+#include <CRSLibtmp/Can/MainPC/letterbox.hpp>
 #include <CRSLibtmp/Can/utility.hpp>
 
 namespace CRSLib::Ros2
 {
-	namespace CanTxVersion
+	namespace CanTxRxVersion
 	{
-		template<reporter Reporter>
 		class CanPillarbox final
 		{
-			Reporter reporter;
-			std::weak_ptr<rclcpp::Publisher<can_plugins2::msg::Frame>> pub;
+			rclcpp::Publisher<can_plugins2::msg::Frame>::SharedPtr pub;
 			u32 id;
 
 			public:
-			CanPillarbox(Reporter&& reporter, std::weak_ptr<rclcpp::Publisher<can_plugins2::msg::Frame>>&& pub, const u32 id):
-				reporter{std::move(reporter)},
-				pub{std::move(pub)},
+			CanPillarbox(rclcpp::Node& self, const u32 id, size_t queue_size):
+				pub{self.create_publisher<can_plugins2::msg::Frame>("can_tx", queue_size)},
 				id{id}
 			{}
 
@@ -37,22 +35,63 @@ namespace CRSLib::Ros2
 				frame.dlc = data.dlc;
 				std::memcpy(frame.data.data(), data.buffer, data.dlc);
 
-				if(const auto sp = pub.lock(); sp)
-				{
-					sp->publish(frame);
-				}
-				else
-				{
-					reporter("Expired CAN publisher was tried to use.");
-				}
+				pub->publish(frame);
 			}
 		};
 
-		class CanClusterLetterbox final
+		class CanLetterboxMaker final
 		{
-			
+			rclcpp::Node& node;
+			rclcpp::SubscriptionOptions options;
+			size_t queue_size;
+			u32 id;
+
+			public:
+			CanLetterboxMaker(rclcpp::Node& node, const u32 id, const size_t queue_size, const rclcpp::SubscriptionOptions& options = {}) noexcept:
+				node{node},
+				options{options},
+				queue_size{queue_size},
+				id{id}
+			{}
+
+			template<Can::MainPC::callback_shared_ptr CallbackSharedPtr>
+			struct Letterbox final : Can::MainPC::LetterboxMarker
+			{
+				typename CallbackSharedPtr::weak_type callback_wp;
+				u32 id;
+				rclcpp::Subscription<can_plugins2::msg::Frame>::SharedPtr can_rx_sub{};
+
+				Letterbox(const CallbackSharedPtr& callback_sp, const u32 id, rclcpp::Node& node, const size_t queue_size, const rclcpp::SubscriptionOptions& options):
+					callback_wp{callback_sp},
+					id{id}
+				{
+					can_rx_sub = node.create_subscription<can_plugins2::msg::Frame>("can_rx", queue_size, std::bind(&Letterbox::callback, this, std::placeholders::_1), options);
+				}
+
+
+				void callback(const can_plugins2::msg::Frame& frame)
+				{
+					if(const auto callback_sp = callback_wp.lock())
+					{
+						if(frame.id == id)
+						{
+							Can::DataField data{.dlc=frame.dlc};
+							std::memcpy(data.buffer, frame.data.data(), frame.dlc);
+							callback_sp->callback(data);
+						}
+					}
+				}
+			};
+
+			template<Can::MainPC::callback_shared_ptr CallbackSharedPtr>
+			auto operator()(const CallbackSharedPtr& callback_sp)
+			{
+				return Letterbox{callback_sp, id, node, queue_size, options};
+			}
 		};
 	}
 
-	using CanTxVersion::CanPillarbox;
+	using CanTxRxVersion::CanPillarbox;
+	using CanTxRxVersion::CanLetterboxMaker;
+
 }

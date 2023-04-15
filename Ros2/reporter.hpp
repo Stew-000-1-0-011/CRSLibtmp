@@ -1,5 +1,7 @@
 #pragma once
 
+#include <utility>
+
 #include <rclcpp/rclcpp.hpp>
 
 #include <CRSLibtmp/reporter.hpp>
@@ -10,6 +12,11 @@ namespace CRSLib::Ros2
 	{
 		rclcpp::Logger logger;
 		rclcpp::Logger::Level level;
+
+		RosReporter(rclcpp::Logger&& logger, const rclcpp::Logger::Level level):
+			logger{std::move(logger)},
+			level{level}
+		{}
 
 		void operator()(auto&& ... args) noexcept
 		{

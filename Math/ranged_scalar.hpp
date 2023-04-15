@@ -26,5 +26,5 @@ namespace CRSLib::Math
 
 	template<class T>
 	requires std::is_arithmetic_v<T>
-	using Degree = RangedScalar<T, 0, 360>;
+	using Degree = RangedScalar<T, static_cast<T>(0), static_cast<T>(360)>;
 }

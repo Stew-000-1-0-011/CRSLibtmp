@@ -9,46 +9,39 @@
 
 namespace CRSLib::Can::MainPC
 {
-	struct Callback
-	{
-		virtual ~Callback() = default;
-		virtual void callback(const DataField& data) = 0;
-	};
+	struct LetterboxMarker
+	{};
 
 	template<class T>
-	concept letterbox = std::move_constructible<T> && requires(T mut, const T imut, const std::shared_ptr<Callback> callback, const DataField data)
+	concept letterbox = std::derived_from<T, LetterboxMarker>;
+
+	namespace Implement
 	{
-		mut.add(callback);
-	};
+		template<class T>
+		void check_shared_ptr(const std::shared_ptr<T>&);
+	}
 
-	struct LetterboxOfCluster final
-	{
-		u32 id{max_ext_id};
-		std::vector<std::weak_ptr<Callback>> callbacks{};
-
-		void add(const std::shared_ptr<Callback>& callback)
-		{
-			callbacks.emplace_back(callback);
-		}
-
-		void receive(const DataField& data)
-		{
-			for(const auto& callback : callbacks)
-			{
-				if(const auto sp = callback.lock(); sp)
-				{
-					sp->callback(data);
-				}
-			}
-		}
-	};
-
-	// can_tx用
 	template<class T>
-	concept cluster_letterbox = std::move_constructible<T> && requires(T mut, const T imut, LetterboxOfCluster box, const u32 id, const DataField data)
+	concept callback_shared_ptr = requires(const T& imut, const DataField data)
 	{
-		mut.add(box);
-		mut.build();
-		imut.receive(id, data);
+		typename T::weak_type;
+		std::weak_ptr{imut};
+		std::weak_ptr{imut}.lock();
+		std::weak_ptr{imut}.lock()->callback(data);
+	};
+
+	namespace Implement
+	{
+		inline constexpr struct DummyCallback
+		{
+			void callback(const DataField&)
+			{}
+		} dummy_callback{};
+	}
+
+	template<class T>
+	concept letterbox_maker = std::move_constructible<T> && requires(T mut, const T imut, const DataField data)
+	{
+		mut(std::make_shared<std::remove_cvref_t<decltype(Implement::dummy_callback)>>());
 	};
 }

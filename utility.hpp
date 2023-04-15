@@ -98,7 +98,7 @@ namespace CRSLib
 	};
 
 	template<std::floating_point T, std::intmax_t n, std::intmax_t d>
-	auto ratio_to_floating(std::ratio<n, d>)
+	constexpr auto ratio_to_floating(std::ratio<n, d>)
 	{
 		return static_cast<T>(n) / d;
 	}
