@@ -12,7 +12,17 @@ namespace CRSLib::Can
 		u8 dlc{};
 	};
 
-	
+	enum class Bitrate : u32
+	{
+		rate10k = 10000,
+		rate20k = 20000,
+		rate50k = 50000,
+		rate100k = 100000,
+		rate125k = 125000,
+		rate250k = 250000,
+		rate500k = 500000,
+		rate1M = 1000000
+	};
 
 	inline constexpr auto max_ext_id = 0x03'FF'FF;
 }
