@@ -24,5 +24,6 @@ namespace CRSLib::Can
 		rate1M = 1000000
 	};
 
-	inline constexpr auto max_ext_id = 0x03'FF'FF;
+	inline constexpr auto max_ext_id = 0x1F'FF'FF'FF;
+	inline constexpr auto max_std_id = 0x7FF;
 }

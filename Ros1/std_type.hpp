@@ -19,6 +19,7 @@ namespace CRSLib
 #undef Stew_define_standard_integer_type
 
 		using i_ptr = std::intptr_t;
+		using u_ptr = std::uintptr_t;
 		using ptrdiff_t = std::ptrdiff_t;
 		using size_t = std::size_t;
 		using nullptr_t = std::nullptr_t;
