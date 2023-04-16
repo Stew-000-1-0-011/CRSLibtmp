@@ -5,6 +5,7 @@
 
 #include <utility>
 #include <numbers>
+// #include <iostream>  // debug
 
 #include <CRSLibtmp/std_type.hpp>
 #include <CRSLibtmp/reporter.hpp>
@@ -68,6 +69,8 @@ namespace CRSLib::Motor
 
 		void update_speed(const float x)
 		{
+			// debug
+			// std::cout << "shirasu::update_speed: id is " << target.get_id() << std::endl;
 			change_state(ShirasuState::velocity);
 			send_target(x * std::numbers::pi_v<float> * 2 / 60);
 			current_speed = x;
@@ -112,7 +115,8 @@ namespace CRSLib::Motor
 					}
 				}
 				else if(state != ShirasuState::disable) reporter("This version of Motor::Shirasu may behave unexpectedly in this state transition.");
-				
+
+				state = s;				
 				command.post(Can::DataField{.buffer=static_cast<byte>(to_underlying(s)), .dlc=1});
 			}
 		}
