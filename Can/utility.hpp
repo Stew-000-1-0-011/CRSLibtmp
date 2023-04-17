@@ -10,6 +10,7 @@ namespace CRSLib::Can
 		static constexpr auto can_mtu = 8;
 		byte buffer[can_mtu]{};
 		u8 dlc{};
+		using Buffer = decltype(buffer);
 	};
 
 	enum class Bitrate : u32
