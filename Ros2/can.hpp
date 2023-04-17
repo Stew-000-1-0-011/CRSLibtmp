@@ -23,8 +23,8 @@ namespace CRSLib::Ros2
 			u32 id;
 
 			public:
-			CanPillarbox(rclcpp::Node& self, const u32 id, size_t queue_size):
-				pub{self.create_publisher<can_plugins2::msg::Frame>("can_tx", queue_size)},
+			CanPillarbox(rclcpp::Node& self, const u32 id):
+				pub{self.create_publisher<can_plugins2::msg::Frame>("can_tx", 100)},
 				id{id}
 			{}
 
@@ -61,11 +61,11 @@ namespace CRSLib::Ros2
 				u32 id;
 				rclcpp::Subscription<can_plugins2::msg::Frame>::SharedPtr can_rx_sub{};
 
-				Letterbox(const CallbackSharedPtr& callback_sp, const u32 id, rclcpp::Node& node, const size_t queue_size, const rclcpp::SubscriptionOptions& options):
+				Letterbox(const CallbackSharedPtr& callback_sp, const u32 id, rclcpp::Node& node, const rclcpp::SubscriptionOptions& options):
 					callback_wp{callback_sp},
 					id{id}
 				{
-					can_rx_sub = node.create_subscription<can_plugins2::msg::Frame>("can_rx", queue_size, std::bind(&Letterbox::callback, this, std::placeholders::_1), options);
+					can_rx_sub = node.create_subscription<can_plugins2::msg::Frame>("can_rx", 100, std::bind(&Letterbox::callback, this, std::placeholders::_1), options);
 				}
 
 

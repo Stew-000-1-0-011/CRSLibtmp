@@ -70,48 +70,46 @@ namespace CRSLib::Can::Stm32::RM0008
 			BitOperation::clear_bit(filter_bank->FAR, 1U << index);
 		}
 
-		Filter make_mask32(const u32 id, const u32 id_mask) noexcept
+		u32 make_list32(const u32 id, bool ide, bool rtr) noexcept
 		{
-			constexpr u32 ide = 0x4;
-			constexpr u32 rtr = 0x2;
+			constexpr u32 ide_32 = 0x4;
+			constexpr u32 rtr_32 = 0x2;
+			constexpr u32 rshift_ext_id_32 = 11U - 3U;
+			constexpr u32 lshift_std_id_32 = 21U;
 
-			if(id > max_std_id)
-			{
-				Filter ret;
-				ret.FR1 = id << 3U | 0x4;
-				ret.FR2 = id_mask << 3U | 0x4 | 0x2;
-				return ret;
-			}
-			else
-			{
-				Filter ret;
-				ret.FR1 = id << 18U;
-				ret.FR2 = id_mask << 18U | 0x4 | 0x2;
-				return ret;
-			}
+			return (id & ~max_std_id & max_ext_id) >> rshift_ext_id_32 | // 拡張IDの上位18bit
+				(id & max_std_id) << lshift_std_id_32 | // 標準IDの11bit
+				ide ? ide_32 : 0 | // IDE
+				rtr ? rtr_32 : 0; // RTR
 		}
 
-		u32 make_list32(const u32 id) noexcept
+		Filter make_mask32(const u32 id, const u32 id_mask) noexcept
 		{
-			constexpr u32 ide = 0x4;
-			constexpr u32 rtr = 0x2;
+			Filter ret;
 
-			if(id > max_std_id)
-			{
-				return id << 3U | 0x4;
-			}
-			else
-			{
-				return id << 18U;
-			}
+			ret.FR1 = make_list32(id, id > max_std_id, false);
+			ret.FR2 = make_list32(id_mask, true, true);
+
+			return ret;
+		}
+
+		u32 make_list16(const u16 id, bool ide, bool rtr) noexcept
+		{
+			constexpr u32 ide_16 = 0x8;
+			constexpr u32 rtr_16 = 0x10;
+			constexpr u32 rshift_ext_id_16 = 11U + 18U - 3U;
+			constexpr u32 lshift_std_id_16 = 5U;
+
+			return (id & max_ext_id) >> rshift_ext_id_16 | // 拡張IDの上位3bit
+				(id & max_std_id) << lshift_std_id_16 | // 標準IDの11bit
+				ide ? ide_16 : 0 | // IDE
+				rtr ? rtr_16 : 0; // RTR
 		}
 
 		u32 make_mask16(const u16 id, const u16 id_mask) noexcept
 		{
-			constexpr u16 ide = 0x4;
-			constexpr u16 rtr = 0x2;
-
-			return id << 5U | 0x4 | 0x2;
+			return make_list16(id, id > max_std_id, false) |
+				make_list16(id_mask, true, true) << 16U;
 		}
 
 		[[nodiscard]] inline bool set_filter(const u8 index, const Filter& filter) noexcept

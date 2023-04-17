@@ -76,6 +76,14 @@ namespace CRSLib::Can::Stm32::RM0008
 		}
 	};
 
+	struct ReceivedMessage final
+	{
+		DataField data;
+		[[deprecated("Not Implemented.")]] u8 fmi;
+		u16 time;
+		u32 id;
+	};
+
 	class CanBus final
 	{
 		CanRegister * bxcan;
@@ -152,14 +160,6 @@ namespace CRSLib::Can::Stm32::RM0008
 
 			return ret;
 		}
-
-		struct ReceivedMessage final
-		{
-			DataField data;
-			u8 fmi;
-			u16 time;
-			u32 id;
-		};
 
 		[[nodiscard]] std::optional<ReceivedMessage> receive(const Fifo fifo) const noexcept
 		{
