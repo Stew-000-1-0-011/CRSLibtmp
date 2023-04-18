@@ -28,7 +28,7 @@ namespace CRSLib::Can::Stm32::RM0008
 	// デフォルトはAPB1が36MHzのとき、1Mbps
 	struct BitTiming final
 	{
-		u16 prescaler{4};
+		u16 prescaler{2};
 		TestMode test_mode{TestMode::Normal};
 		u8 resyncronization_jump_width{1};
 		u8 time_segment_1{15};
@@ -69,6 +69,7 @@ namespace CRSLib::Can::Stm32::RM0008
 				(auto_bus_off_recovery ? RegisterMap::MCR::ABOM : 0) |
 				(auto_wake_up ? RegisterMap::MCR::AWUM : 0) |
 				// (no_auto_retransmission ? RegisterMap::MCR::NART : 0) |
+				RegisterMap::MCR::NART |
 				(receive_fifo_locked ? RegisterMap::MCR::RFLM : 0) |
 				(transmit_fifo_priority ? RegisterMap::MCR::TXFP : 0);
 
@@ -208,33 +209,33 @@ namespace CRSLib::Can::Stm32::RM0008
 		private:
 		[[nodiscard]] bool abort_transmit(const u32 code) const noexcept
 		{
-			BitOperation::set_bit(bxcan->TSR, RegisterMap::TSR::ABRQ0 << (1 << code));
-			while(BitOperation::is_bit_clear(bxcan->TSR, RegisterMap::TSR::ABRQ0 << (1 << code)));
-			return BitOperation::is_bit_set(bxcan->TSR, RegisterMap::TSR::TXOK0 << (1 << code));
+			BitOperation::set_bit(bxcan->TSR, RegisterMap::TSR::ABRQ0 << (code << 3));
+			while(!BitOperation::is_bit_clear(bxcan->TSR, RegisterMap::TSR::ABRQ0 << (code << 3)));
+			return BitOperation::is_bit_set(bxcan->TSR, RegisterMap::TSR::TXOK0 << (code << 3));
 		}
 
 		void leave_sleep() noexcept
 		{
 			BitOperation::clear_bit(bxcan->MCR, RegisterMap::MCR::SLEEP);
-			while(BitOperation::is_bit_clear(bxcan->MSR, RegisterMap::MSR::SLAK));
+			while(!BitOperation::is_bit_clear(bxcan->MSR, RegisterMap::MSR::SLAK));
 		}
 
 		void enter_sleep() noexcept
 		{
 			BitOperation::set_bit(bxcan->MCR, RegisterMap::MCR::SLEEP);
-			while(BitOperation::is_bit_set(bxcan->MSR, RegisterMap::MSR::SLAK));
+			while(!BitOperation::is_bit_set(bxcan->MSR, RegisterMap::MSR::SLAK));
 		}
 
 		void enter_initialization() noexcept
 		{
 			BitOperation::set_bit(bxcan->MCR, RegisterMap::MCR::INRQ);
-			while(BitOperation::is_bit_set(bxcan->MSR, RegisterMap::MSR::INAK));
+			while(!BitOperation::is_bit_set(bxcan->MSR, RegisterMap::MSR::INAK));
 		}
 
 		void leave_initialization() noexcept
 		{
 			BitOperation::clear_bit(bxcan->MCR, RegisterMap::MCR::INRQ);
-			while(BitOperation::is_bit_clear(bxcan->MSR, RegisterMap::MSR::INAK));
+			while(!BitOperation::is_bit_clear(bxcan->MSR, RegisterMap::MSR::INAK));
 		}
 	};
 }
