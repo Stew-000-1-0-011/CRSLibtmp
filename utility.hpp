@@ -10,6 +10,7 @@
 #pragma once
 
 #include <cstdint>
+#include <cstring>
 #include <concepts>
 #include <type_traits>
 #include <utility>
