@@ -105,4 +105,12 @@ namespace CRSLib
 
 	template<class T>
 	concept is_std_ratio = std::invocable<decltype(ratio_get_numbers), T>;
+
+	template<class To, class From>
+	To bit_cast(const From& from) noexcept
+	{
+		To result;
+		std::memcpy(&result, &from, sizeof(To));
+		return result;
+	}
 }

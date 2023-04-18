@@ -15,11 +15,14 @@ namespace CRSLib::Math
 		T previous;
 		T integral;
 
+		public:
 		constexpr Pid(const T p_gain, const T i_gain, const T d_gain, const T previous = 0, const T integral = 0) noexcept
 			:
 			p_gain(p_gain),
 			i_gain(i_gain),
-			d_gain(d_gain)
+			d_gain(d_gain),
+			previous(previous),
+			integral(integral)
 		{}
 
 		T update(const T target, const T current) noexcept
