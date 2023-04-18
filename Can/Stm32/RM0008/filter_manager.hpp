@@ -60,17 +60,32 @@ namespace CRSLib::Can::Stm32::RM0008
 			}
 		}
 
-		void activate(const u8 index) noexcept
+		inline void initialize(const u8 can2sb) noexcept
+		{
+			constexpr u32 filter_bank_mask = (1U << filter_bank_size) - 1U;
+			{
+				BitOperation::PinnedBit finit{filter_bank->FMaR, RegisterMap::FMaR::FINIT};
+
+				BitOperation::set_bit(filter_bank->FMaR, can2sb << RegisterMap::FMaR::shiftCAN2SB);
+
+				BitOperation::change_masked_range(filter_bank->FMoR, filter_bank_mask, 0x0U);
+				BitOperation::change_masked_range(filter_bank->FSR, filter_bank_mask, 0x0U);
+				BitOperation::change_masked_range(filter_bank->FFAR, filter_bank_mask, 0x0U);
+				BitOperation::change_masked_range(filter_bank->FAR, filter_bank_mask, 0x0U);
+			}
+		}
+
+		inline void activate(const u8 index) noexcept
 		{
 			BitOperation::set_bit(filter_bank->FAR, 1U << index);
 		}
 
-		void deactivate(const u8 index) noexcept
+		inline void deactivate(const u8 index) noexcept
 		{
 			BitOperation::clear_bit(filter_bank->FAR, 1U << index);
 		}
 
-		u32 make_list32(const u32 id, bool ide, bool rtr) noexcept
+		inline u32 make_list32(const u32 id, bool ide, bool rtr) noexcept
 		{
 			constexpr u32 ide_32 = 0x4;
 			constexpr u32 rtr_32 = 0x2;
@@ -85,7 +100,7 @@ namespace CRSLib::Can::Stm32::RM0008
 				(rtr ? rtr_32 : 0); // RTR
 		}
 
-		Filter make_mask32(const u32 id, const u32 id_mask) noexcept
+		inline Filter make_mask32(const u32 id, const u32 id_mask) noexcept
 		{
 			Filter ret;
 
@@ -95,7 +110,7 @@ namespace CRSLib::Can::Stm32::RM0008
 			return ret;
 		}
 
-		u32 make_list16(const u16 id, bool ide, bool rtr) noexcept
+		inline u32 make_list16(const u16 id, bool ide, bool rtr) noexcept
 		{
 			constexpr u32 ide_16 = 0x8;
 			constexpr u32 rtr_16 = 0x10;
@@ -108,13 +123,13 @@ namespace CRSLib::Can::Stm32::RM0008
 				(rtr ? rtr_16 : 0); // RTR
 		}
 
-		u32 make_mask16(const u16 id, const u16 id_mask) noexcept
+		inline u32 make_mask16(const u16 id, const u16 id_mask) noexcept
 		{
 			return make_list16(id, id > max_std_id, false) |
 				make_list16(id_mask, true, true) << 16U;
 		}
 
-		[[nodiscard]] inline bool set_filter(const u8 index, const Filter& filter) noexcept
+		inline [[nodiscard]] inline bool set_filter(const u8 index, const Filter& filter) noexcept
 		{
 			if(BitOperation::is_bit_clear(filter_bank->FAR, 1U << index))
 			{
