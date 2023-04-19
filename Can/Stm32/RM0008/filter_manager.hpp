@@ -92,8 +92,6 @@ namespace CRSLib::Can::Stm32::RM0008
 			constexpr u32 rshift_ext_id_32 = 11U - 3U;
 			constexpr u32 lshift_std_id_32 = 21U;
 
-			const auto std_dbg = (id & max_std_id) << lshift_std_id_32;
-
 			return (id & ~max_std_id & max_ext_id) >> rshift_ext_id_32 | // 拡張IDの上位18bit
 				(id & max_std_id) << lshift_std_id_32 | // 標準IDの11bit
 				(ide ? ide_32 : 0) | // IDE
@@ -129,7 +127,7 @@ namespace CRSLib::Can::Stm32::RM0008
 				make_list16(id_mask, true, true) << 16U;
 		}
 
-		inline [[nodiscard]] inline bool set_filter(const u8 index, const Filter& filter) noexcept
+		[[nodiscard]] inline bool set_filter(const u8 index, const Filter& filter) noexcept
 		{
 			if(BitOperation::is_bit_clear(filter_bank->FAR, 1U << index))
 			{
