@@ -23,10 +23,12 @@ namespace CRSLib::Ros2
 			u32 id;
 
 			public:
-			CanPillarbox(rclcpp::Node& self, const u32 id):
-				pub{self.create_publisher<can_plugins2::msg::Frame>("can_tx", 100)},
+			CanPillarbox(const rclcpp::Publisher<can_plugins2::msg::Frame>::SharedPtr& pub, const u32 id) noexcept:
+				pub{pub},
 				id{id}
 			{}
+
+			CanPillarbox(CanPillarbox&&) = default;
 
 			void post(const Can::DataField& data)
 			{
