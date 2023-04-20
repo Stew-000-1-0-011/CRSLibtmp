@@ -23,10 +23,12 @@ namespace CRSLib::Ros2
 			u32 id;
 
 			public:
-			CanPillarbox(rclcpp::Node& self, const u32 id):
-				pub{self.create_publisher<can_plugins2::msg::Frame>("can_tx", 100)},
+			CanPillarbox(const rclcpp::Publisher<can_plugins2::msg::Frame>::SharedPtr& pub, const u32 id) noexcept:
+				pub{pub},
 				id{id}
 			{}
+
+			CanPillarbox(CanPillarbox&&) = default;
 
 			void post(const Can::DataField& data)
 			{
@@ -47,10 +49,9 @@ namespace CRSLib::Ros2
 			u32 id;
 
 			public:
-			CanLetterboxMaker(rclcpp::Node& node, const u32 id, const size_t queue_size, const rclcpp::SubscriptionOptions& options = {}) noexcept:
+			CanLetterboxMaker(rclcpp::Node& node, const u32 id, const rclcpp::SubscriptionOptions& options = {}) noexcept:
 				node{node},
 				options{options},
-				queue_size{queue_size},
 				id{id}
 			{}
 
@@ -86,7 +87,7 @@ namespace CRSLib::Ros2
 			template<Can::MainPC::callback_shared_ptr CallbackSharedPtr>
 			auto operator()(const CallbackSharedPtr& callback_sp)
 			{
-				return Letterbox{callback_sp, id, node, queue_size, options};
+				return Letterbox{callback_sp, id, node, options};
 			}
 		};
 	}
