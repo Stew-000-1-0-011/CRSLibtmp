@@ -70,17 +70,18 @@ namespace CRSLib::Ros2
 				}
 
 
-				void callback(const can_plugins2::msg::Frame& frame)
+				void callback(const can_plugins2::msg::Frame::ConstSharedPtr frame)
 				{
-					if(const auto callback_sp = callback_wp.lock())
-					{
-						if(frame.id == id)
-						{
-							Can::DataField data{.dlc=frame.dlc};
-							std::memcpy(data.buffer, frame.data.data(), frame.dlc);
-							callback_sp->callback(data);
-						}
-					}
+					volatile auto tmp = callback_wp.lock();
+					// if(const auto callback_sp = callback_wp.lock(); callback_sp)
+					// {
+					// 	if(frame->id == id)
+					// 	{
+					// 		Can::DataField data{.dlc=frame->dlc};
+					// 		std::memcpy(data.buffer, frame->data.data(), frame->dlc);
+					// 		callback_sp->callback(data);
+					// 	}
+					// }
 				}
 			};
 
