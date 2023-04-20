@@ -72,23 +72,22 @@ namespace CRSLib::Ros2
 
 				void callback(const can_plugins2::msg::Frame::ConstSharedPtr frame)
 				{
-					volatile auto tmp = callback_wp.lock();
-					// if(const auto callback_sp = callback_wp.lock(); callback_sp)
-					// {
-					// 	if(frame->id == id)
-					// 	{
-					// 		Can::DataField data{.dlc=frame->dlc};
-					// 		std::memcpy(data.buffer, frame->data.data(), frame->dlc);
-					// 		callback_sp->callback(data);
-					// 	}
-					// }
+					if(const auto callback_sp = callback_wp.lock(); callback_sp)
+					{
+						if(frame->id == id)
+						{
+							Can::DataField data{.dlc=frame->dlc};
+							std::memcpy(data.buffer, frame->data.data(), frame->dlc);
+							callback_sp->callback(data);
+						}
+					}
 				}
 			};
 
 			template<Can::MainPC::callback_shared_ptr CallbackSharedPtr>
 			auto operator()(const CallbackSharedPtr& callback_sp)
 			{
-				return Letterbox{callback_sp, id, node, options};
+				return std::make_unique<Letterbox<CallbackSharedPtr>>(callback_sp, id, node, options);
 			}
 		};
 	}
