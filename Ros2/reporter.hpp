@@ -13,8 +13,8 @@ namespace CRSLib::Ros2
 		rclcpp::Logger logger;
 		rclcpp::Logger::Level level;
 
-		RosReporter(rclcpp::Logger&& logger, const rclcpp::Logger::Level level):
-			logger{std::move(logger)},
+		RosReporter(const rclcpp::Logger& logger, const rclcpp::Logger::Level level):
+			logger{logger},
 			level{level}
 		{}
 
