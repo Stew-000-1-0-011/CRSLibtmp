@@ -32,11 +32,13 @@ namespace CRSLib::Mechanism
 
 		void extend()
 		{
+			is_extend = true;
 			pillarbox.post(Can::DataField{.buffer={static_cast<byte>(open_equal_extend)}, .dlc=1});
 		}
 
 		void contract()
 		{
+			is_extend = false;
 			pillarbox.post(Can::DataField{.buffer={static_cast<byte>(!open_equal_extend)}, .dlc=1});
 		}
 
