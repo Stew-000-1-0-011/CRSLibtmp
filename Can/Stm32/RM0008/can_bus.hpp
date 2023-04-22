@@ -113,7 +113,7 @@ namespace CRSLib::Can::Stm32::RM0008
 		/// @return 破棄が発生したかどうか
 		[[nodiscard]] bool post(const u32 id, const DataField& data) const noexcept
 		{
-			const u32 code = bxcan->TSR & RegisterMap::TSR::CODE >> RegisterMap::TSR::shiftCODE;
+			const u32 code = (bxcan->TSR & RegisterMap::TSR::CODE) >> RegisterMap::TSR::shiftCODE;
 			constexpr u32 shift_tme = 26;
 			
 			bool ret = false;
