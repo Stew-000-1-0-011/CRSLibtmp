@@ -202,6 +202,9 @@ namespace CRSLib::Can::Stm32::RM0008
 				// IDの取得
 				msg.id = decode_mir(mailbox.MIR);
 
+				// 受信をリリース
+				BitOperation::set_bit(bxcan->RFxR[fifo_], RegisterMap::RFxR::RFOM);
+
 				return {msg};
 			}
 		}
