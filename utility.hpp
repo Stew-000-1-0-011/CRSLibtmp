@@ -80,12 +80,9 @@ namespace CRSLib
 			AlignedStorage_(const AlignedStorage_&) = delete;
 			AlignedStorage_(AlignedStorage_&&) = delete;
 
-			using T = alignas(T_) byte[sizeof(T_)];
+			alignas(T_) byte storage[sizeof(T_)];
 		};
 	}
-
-	template<class T>
-	using AlignedStorageT = Implement::AlignedStorage_<T>::T;
 
 	template <class T>
 	constexpr std::underlying_type_t<T> to_underlying(T value) noexcept
