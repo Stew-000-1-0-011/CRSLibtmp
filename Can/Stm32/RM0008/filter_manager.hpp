@@ -1,5 +1,7 @@
 #pragma once
 
+#include <utility>
+
 #include <CRSLibtmp/std_type.hpp>
 #include <CRSLibtmp/bit_operation.hpp>
 
@@ -13,7 +15,6 @@ namespace CRSLib::Can::Stm32::RM0008
 		bool is_list_mode{false};
 		bool is_32bit{true};
 		bool is_fifo1{false};
-		u8 fmi{};
 
 		static constexpr FilterConfig make_default(const Fifo fifo, const bool is_list_mode = true) noexcept
 		{
@@ -36,6 +37,7 @@ namespace CRSLib::Can::Stm32::RM0008
 			{
 				BitOperation::PinnedBit finit{filter_bank->FMaR, RegisterMap::FMaR::FINIT};
 
+				BitOperation::clear_bit(filter_bank->FMaR, RegisterMap::FMaR::CAN2SB);
 				BitOperation::set_bit(filter_bank->FMaR, can2sb << RegisterMap::FMaR::shiftCAN2SB);
 
 				u32 is_list_mode = 0;
@@ -60,12 +62,15 @@ namespace CRSLib::Can::Stm32::RM0008
 			}
 		}
 
+		/// @brief フィルタバンクの初期化を行う
+		/// @param can2sb 
 		inline void initialize(const u8 can2sb) noexcept
 		{
 			constexpr u32 filter_bank_mask = (1U << filter_bank_size) - 1U;
 			{
 				BitOperation::PinnedBit finit{filter_bank->FMaR, RegisterMap::FMaR::FINIT};
 
+				BitOperation::clear_bit(filter_bank->FMaR, RegisterMap::FMaR::CAN2SB);
 				BitOperation::set_bit(filter_bank->FMaR, can2sb << RegisterMap::FMaR::shiftCAN2SB);
 
 				BitOperation::change_masked_range(filter_bank->FMoR, filter_bank_mask, 0x0U);
@@ -150,6 +155,23 @@ namespace CRSLib::Can::Stm32::RM0008
 				return true;
 			}
 			else return false;
+		}
+
+
+		/// @brief 深く考えずにフィルタバンクを初期化する
+		/// @tparam n 
+		/// @param id_fifos 受信するIDとそれを入れる先のFifoのstd::pair
+		template<u8 n>
+		requires (n <= filter_bank_size)
+		inline void initialize_you_dont_have_to_think_much(const std::pair<u32, Fifo> (&id_fifos)[n]) noexcept
+		{
+			[]<u8 ... indices>(std::integer_sequence<u8, indices...>, const auto& id_fifos)
+			{
+				FilterConfig filter_configs[] = {FilterConfig::make_default(id_fifos[indices].second) ...};
+				initialize(filter_bank_size, filter_configs);
+				((void)set_filter(indices, Filter{make_list32(id_fifos[indices].first), 0x00u}), ...);
+				(activate(indices), ...);
+			}(std::make_integer_sequence<u8, n>{}, id_fifos);
 		}
 	}
 }
