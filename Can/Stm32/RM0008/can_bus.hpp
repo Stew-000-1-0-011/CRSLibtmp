@@ -45,7 +45,6 @@ namespace CRSLib::Can::Stm32::RM0008
 		}
 
 		static constexpr u32 mask = RegisterMap::BTR::BRP | RegisterMap::BTR::LBKM | RegisterMap::BTR::SILM | RegisterMap::BTR::SJW | RegisterMap::BTR::TS1 | RegisterMap::BTR::TS2;
-
 	};
 
 	struct CanBusInit final
@@ -80,9 +79,9 @@ namespace CRSLib::Can::Stm32::RM0008
 	struct ReceivedMessage final
 	{
 		DataField data;
-		[[deprecated("Not Implemented.")]] u8 fmi;
-		u16 time;
+		// u8 fmi;
 		u32 id;
+		u16 time;
 	};
 
 	class CanBus final
@@ -90,8 +89,16 @@ namespace CRSLib::Can::Stm32::RM0008
 		CanRegister * bxcan;
 
 		public:
-		CanBus(CanRegister *const bxcan, const CanBusInit& init = {}) noexcept:
+		CanBus(CanRegister *const bxcan) noexcept:
 			bxcan{bxcan}
+		{}
+
+		~CanBus()
+		{
+			enter_sleep();
+		}
+
+		void start(CanBusInit init = {}) const noexcept
 		{
 			enter_initialization();
 			leave_sleep();
@@ -99,11 +106,6 @@ namespace CRSLib::Can::Stm32::RM0008
 			init.apply(bxcan);
 
 			leave_initialization();
-		}
-
-		~CanBus()
-		{
-			enter_sleep();
 		}
 
 		/// @brief メッセージを送信する。すでに送信バッファが埋まっていたら、新たに追加しようとしたものを含めた中で優先度の最も低いメッセージを破棄する。
@@ -128,7 +130,7 @@ namespace CRSLib::Can::Stm32::RM0008
 				}
 				else
 				{
-					// そうでなければ送信をアボートする
+					// そうでなければ送信をアボートする(か、結果的に送信が終わって空きができる)
 					ret = abort_transmit(code);
 				}
 			}
@@ -193,8 +195,8 @@ namespace CRSLib::Can::Stm32::RM0008
 					std::memcpy(msg.data.buffer + 4, &tmp, msg.data.dlc - 4);
 				}
 
-				// FMIの取得
-				msg.fmi = mailbox.MDTR & RegisterMap::MDTR::FMI >> RegisterMap::MDTR::shiftFMI;
+				// // FMIの取得
+				// msg.fmi = mailbox.MDTR & RegisterMap::MDTR::FMI >> RegisterMap::MDTR::shiftFMI;
 
 				// 受信時刻の取得
 				msg.time = mailbox.MDTR & RegisterMap::MDTR::TIME >> RegisterMap::MDTR::shiftTIME;
@@ -210,6 +212,9 @@ namespace CRSLib::Can::Stm32::RM0008
 		}
 
 		private:
+		/// @brief 送信をアボートする
+		/// @param code mailbox code
+		/// @return Whether the transmission was successful: true if successful, false if aborted
 		[[nodiscard]] bool abort_transmit(const u32 code) const noexcept
 		{
 			BitOperation::set_bit(bxcan->TSR, RegisterMap::TSR::ABRQ0 << (code << 3));
@@ -217,25 +222,25 @@ namespace CRSLib::Can::Stm32::RM0008
 			return BitOperation::is_bit_set(bxcan->TSR, RegisterMap::TSR::TXOK0 << (code << 3));
 		}
 
-		void leave_sleep() noexcept
+		void leave_sleep() const noexcept
 		{
 			BitOperation::clear_bit(bxcan->MCR, RegisterMap::MCR::SLEEP);
 			while(!BitOperation::is_bit_clear(bxcan->MSR, RegisterMap::MSR::SLAK));
 		}
 
-		void enter_sleep() noexcept
+		void enter_sleep() const noexcept
 		{
 			BitOperation::set_bit(bxcan->MCR, RegisterMap::MCR::SLEEP);
 			while(!BitOperation::is_bit_set(bxcan->MSR, RegisterMap::MSR::SLAK));
 		}
 
-		void enter_initialization() noexcept
+		void enter_initialization() const noexcept
 		{
 			BitOperation::set_bit(bxcan->MCR, RegisterMap::MCR::INRQ);
 			while(!BitOperation::is_bit_set(bxcan->MSR, RegisterMap::MSR::INAK));
 		}
 
-		void leave_initialization() noexcept
+		void leave_initialization() const noexcept
 		{
 			BitOperation::clear_bit(bxcan->MCR, RegisterMap::MCR::INRQ);
 			while(!BitOperation::is_bit_clear(bxcan->MSR, RegisterMap::MSR::INAK));
