@@ -241,7 +241,7 @@ namespace CRSLib::Can::Stm32::RM0008
 		namespace FMaR // Filter master register
 		{
 			// reserved
-			inline constexpr u32 CAN2SB = 0x00'00'FF'00U; // CAN2 start bank
+			inline constexpr u32 CAN2SB = 0x00'00'3F'00U; // CAN2 start bank
 			inline constexpr u32 shiftCAN2SB = 8U;
 			// reserved
 			inline constexpr u32 FINIT = 0x00'00'00'01U; // Filter init mode
