@@ -1,0 +1,25 @@
+{
+	"version": "2.0.0",
+	"tasks": [
+		{
+			"label": "C/C++: g++ build active file",
+			"command": "g++",
+			"args": [
+				"-std=c++20"
+				// , "-c"3
+				, "-Wall"
+				, "-Wextra"
+				// , "-fsanitize=address"
+				, "-fmax-errors=3"
+				, "-pedantic-errors"
+				, "-I."
+				, "-o"
+				, "${fileDirname}\\${fileBasenameNoExtension}.exe"
+				, "${fileDirname}\\${fileBasename}"
+			],
+			"problemMatcher": [
+				"$gcc"
+			]
+		}
+	]
+}
